@@ -2,16 +2,16 @@
 apitinyfile
 ===========
 
-apitinyfile is a tiny api server to allow (some or all of) reading, writing,
+`apitinyfile` is a tiny api server to allow (some or all of) reading, writing,
 and deleting files in a single directory, with support for TLS and basic
 authentication.
 
 It is intended as a lightweight method of transferring files in ad-hoc or
 narrowly-focussed situations, with less overhead and exposure than using
-something broad like ssh.
+something broad like `ssh`.
 
 It should be run as a non-privileged user with only the required permissions
-for the directory in question.
+for the directory in question. It should NOT be run as `root`.
 
 
 Installation
@@ -28,7 +28,7 @@ or `$HOME/go/bin` directory (which you might need to add to your `$PATH`).
 api
 ---
 
-apitestfile supports the following routes (if enabled by runtime options
+`apitestfile` supports the following routes (if enabled by runtime options
 on the server):
 
 ```
@@ -37,7 +37,7 @@ on the server):
 - DELETE /:filename - deletes `filename` in your directory (if it exists)
 ```
 
-For example, if $URL is your apitinyfile base endpoint, you can do the following
+For example, if $URL is your `apitinyfile` base endpoint, you can do the following
 with `curl` to write, fetch, and delete a file called `foo`:
 
 ```
@@ -61,5 +61,5 @@ Copyright 2023 Gavin Carr <gavin@openfusion.net>.
 Licence
 --------
 
-apitinyfile is available under the terms of the MIT Licence.
+`apitinyfile` is available under the terms of the MIT Licence.
 
