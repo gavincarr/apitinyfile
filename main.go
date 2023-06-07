@@ -54,6 +54,15 @@ func basicAuth(a *auth.BasicAuth) gin.HandlerFunc {
 
 func (env *Env) getHandler(c *gin.Context) {
 	path := env.opts.Args.Directory + "/" + c.Param("filename")
+	_, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			c.String(http.StatusNotFound, "File Not Found")
+			return
+		}
+		c.String(http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
 	c.File(path)
 	c.Status(http.StatusOK)
 
@@ -66,14 +75,14 @@ func (env *Env) putHandler(c *gin.Context) {
 	defer c.Request.Body.Close()
 	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		c.AbortWithStatusJSON(badRequestError(err.Error()))
+		c.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
 	path := env.opts.Args.Directory + "/" + c.Param("filename")
 	err = os.WriteFile(path, data, 0644)
 	if err != nil {
-		c.AbortWithStatusJSON(internalError("system error on write"))
+		c.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -89,15 +98,15 @@ func (env *Env) deleteHandler(c *gin.Context) {
 	_, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			c.AbortWithStatusJSON(notFoundError("file not found"))
+			c.String(http.StatusNotFound, "File Not Found")
 			return
 		}
-		c.AbortWithStatusJSON(internalError("system error on delete"))
+		c.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 	err = os.Remove(path)
 	if err != nil {
-		c.AbortWithStatusJSON(internalError("system error on delete"))
+		c.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 	c.Status(http.StatusNoContent)
