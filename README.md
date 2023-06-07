@@ -25,6 +25,33 @@ which installs the latest version of `apitinyfile` in your `$GOPATH/bin`
 or `$HOME/go/bin` directory (which you might need to add to your `$PATH`).
 
 
+api
+---
+
+apitestfile supports the following routes (if enabled by runtime options
+on the server):
+
+```
+- GET /:filename - returns the contents of `filename` in your directory (if it exists)
+- PUT /:filename - writes the request body to `filename` in your directory (creates/overwrites)
+- DELETE /:filename - deletes `filename` in your directory (if it exists)
+```
+
+For example, if $URL is your apitinyfile base endpoint, you can do the following
+with `curl` to write, fetch, and delete a file called `foo`:
+
+```
+# Copy example.txt to `foo`
+curl -X PUT --data-binary @example.txt $URL/foo
+
+# Fetch `foo`
+curl $URL/foo
+
+# Delete `foo`
+curl -X DELETE $URL/foo
+```
+
+
 Author
 ------
 
