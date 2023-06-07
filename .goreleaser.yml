@@ -1,0 +1,48 @@
+before:
+  hooks:
+    - go mod download
+    - go mod tidy
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+archives:
+  - name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+nfpms:
+  - id: nfpms
+    description: apitinyfile is a tiny api server for reading/writing/deleting files in a single directory
+    homepage: https://github.com/gavincarr/apitinyfile
+    maintainer: Gavin Carr <gavin@openfusion.net>
+    license: MIT
+    formats: 
+      - deb
+      - rpm
+    bindir: /usr/bin
+    file_name_template: '{{ .ProjectName }}_{{ replace .Version "v" "" }}_{{ .Arch }}'  
+    overrides:
+      rpm:
+        file_name_template: '{{ .ProjectName }}-{{ replace .Version "v" "" }}.{{ .Arch }}'
+release:
+  github:
+    owner: gavincarr
+    name: apitinyfile
+env_files:
+  github_token: ~/.gh_goreleaser
