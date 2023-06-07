@@ -118,7 +118,7 @@ func (env *Env) deleteHandler(c *gin.Context) {
 
 func checkOptions(opts *Options) {
 	if !opts.All && !opts.Read && !opts.Write && !opts.Delete {
-		log.Fatal("must specify at least one of [-a|-r|-w|-d]")
+		log.Fatal("Error: must specify at least one of [-a|-r|-w|-d]")
 	}
 	if opts.All {
 		opts.Read = true
@@ -126,10 +126,10 @@ func checkOptions(opts *Options) {
 		opts.Delete = true
 	}
 	if opts.Cert != "" && opts.Key == "" {
-		log.Fatal("must specify --key with --cert")
+		log.Fatal("Error: must specify --key with --cert")
 	}
 	if opts.Key != "" && opts.Cert == "" {
-		log.Fatal("must specify --cert with --key")
+		log.Fatal("Error: must specify --cert with --key")
 	}
 	if opts.PostHook != "" {
 		err := checkPostHook(opts.PostHook)
@@ -157,6 +157,10 @@ func main() {
 	}
 	checkOptions(&opts)
 
+	// Check we're not running as root
+	if os.Geteuid() == 0 {
+		log.Fatal("Error: not to be run as root - use a non-privileged user account instead")
+	}
 	// Setup environment
 	env := Env{
 		opts: opts,
