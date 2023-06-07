@@ -31,7 +31,13 @@ type Options struct {
 }
 
 type Env struct {
-	opts Options
+	Verbose   bool
+	Read      bool
+	Write     bool
+	Delete    bool
+	Passwd    string
+	PostHook  string
+	Directory string
 }
 
 // BasicAuth middleware
@@ -53,7 +59,7 @@ func basicAuth(a *auth.BasicAuth) gin.HandlerFunc {
 }
 
 func (env *Env) getHandler(c *gin.Context) {
-	path := env.opts.Args.Directory + "/" + c.Param("filename")
+	path := env.Directory + "/" + c.Param("filename")
 	_, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -66,8 +72,8 @@ func (env *Env) getHandler(c *gin.Context) {
 	c.File(path)
 	c.Status(http.StatusOK)
 
-	if env.opts.PostHook != "" {
-		postHook(env.opts.PostHook, "GET", path, env.opts.Verbose)
+	if env.PostHook != "" {
+		postHook(env.PostHook, "GET", path, env.Verbose)
 	}
 }
 
@@ -79,7 +85,7 @@ func (env *Env) putHandler(c *gin.Context) {
 		return
 	}
 
-	path := env.opts.Args.Directory + "/" + c.Param("filename")
+	path := env.Directory + "/" + c.Param("filename")
 	err = os.WriteFile(path, data, 0644)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Internal Server Error")
@@ -88,13 +94,13 @@ func (env *Env) putHandler(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 
-	if env.opts.PostHook != "" {
-		postHook(env.opts.PostHook, "PUT", path, env.opts.Verbose)
+	if env.PostHook != "" {
+		postHook(env.PostHook, "PUT", path, env.Verbose)
 	}
 }
 
 func (env *Env) deleteHandler(c *gin.Context) {
-	path := env.opts.Args.Directory + "/" + c.Param("filename")
+	path := env.Directory + "/" + c.Param("filename")
 	_, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -111,8 +117,8 @@ func (env *Env) deleteHandler(c *gin.Context) {
 	}
 	c.Status(http.StatusNoContent)
 
-	if env.opts.PostHook != "" {
-		postHook(env.opts.PostHook, "DELETE", path, env.opts.Verbose)
+	if env.PostHook != "" {
+		postHook(env.PostHook, "DELETE", path, env.Verbose)
 	}
 }
 
@@ -139,6 +145,27 @@ func checkOptions(opts *Options) {
 	}
 }
 
+func (env *Env) setupRouter(r *gin.Engine) {
+	// Authentication
+	var authenticator *auth.BasicAuth
+	if env.Passwd != "" {
+		htpasswd := auth.HtpasswdFileProvider(env.Passwd)
+		authenticator = auth.NewBasicAuthenticator("Protected", htpasswd)
+	}
+	auth := r.Group("/", basicAuth(authenticator))
+
+	// Routes
+	if env.Read {
+		auth.GET("/:filename", env.getHandler)
+	}
+	if env.Write {
+		auth.PUT("/:filename", env.putHandler)
+	}
+	if env.Delete {
+		auth.DELETE("/:filename", env.deleteHandler)
+	}
+}
+
 func main() {
 	log.SetFlags(0)
 	// Parse default options are HelpFlag | PrintErrors | PassDoubleDash
@@ -161,32 +188,19 @@ func main() {
 	if os.Geteuid() == 0 {
 		log.Fatal("Error: not to be run as root - use a non-privileged user account instead")
 	}
+
 	// Setup environment
 	env := Env{
-		opts: opts,
+		Read:      opts.Read,
+		Write:     opts.Write,
+		Delete:    opts.Delete,
+		Passwd:    opts.Passwd,
+		PostHook:  opts.PostHook,
+		Directory: opts.Args.Directory,
 	}
-
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
-
-	// Authentication
-	var authenticator *auth.BasicAuth
-	if opts.Passwd != "" {
-		htpasswd := auth.HtpasswdFileProvider(opts.Passwd)
-		authenticator = auth.NewBasicAuthenticator("Protected", htpasswd)
-	}
-	auth := r.Group("/", basicAuth(authenticator))
-
-	// Routes
-	if opts.Read {
-		r.GET("/:filename", env.getHandler)
-	}
-	if opts.Write {
-		auth.PUT("/:filename", env.putHandler)
-	}
-	if opts.Delete {
-		r.DELETE("/:filename", env.deleteHandler)
-	}
+	env.setupRouter(r)
 
 	// Event loop
 	fmt.Println("listening on", opts.Listen)

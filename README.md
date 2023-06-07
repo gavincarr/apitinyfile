@@ -32,19 +32,22 @@ On your server:
 
 ```
 # By default, binds to *:3137, with no TLS or authentication.
-# Requires # that you specify what operations to support (`-r/-w/-d` for
-# read/write/delete, # or `-a` for all), and the directory to use for all
+# Requires that you specify what operations to support (`-r/-w/-d` for
+# read/write/delete, or `-a` for all), and the directory to use for all
 # files (absolute or relative).
 apitinyfile -rwd /path/to/directory
 
 # To use TLS, you must also supply the TLS certificate and key files to use:
-apitinyfile -rwd -c /path/to/tls/cert -k /path/to/tls/key /path/to/directory
+apitinyfile -a -c /path/to/tls/cert -k /path/to/tls/key /path/to/directory
 
 # And to use basic authentication, you must also supply a valid `htpasswd` file
-# with users and encrypted passwords (note that you SHOULD always use TLS with
+# with users and encrypted passwords (note that you should ALWAYS use TLS with
 # basic authentication, since otherwise your credentials will be travelling in
 # the clear on every request):
-apitinyfile -rwd -c /path/to/tls/cert -k /path/to/tls/key -p /path/to/htpasswd /path/to/directory
+apitinyfile -a -c /path/to/tls/cert -k /path/to/tls/key -p /path/to/htpasswd /path/to/directory
+
+# To bind to a different port and/or hostname, use the `-l/--listen` option:
+apitinyfile -a -l 192.168.10.1:3000 /path/to/directory
 
 # See all command-line options:
 apitinyfile -h
@@ -54,8 +57,8 @@ apitinyfile -h
 api
 ---
 
-`apitestfile` supports the following routes (if enabled by runtime options
-on the server):
+`apitestfile` supports the following routes (if enabled by the operations
+options above on the server):
 
 ```
 - GET /:filename - returns the contents of `filename` in your directory (if it exists)
