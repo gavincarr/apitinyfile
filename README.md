@@ -25,6 +25,32 @@ which installs the latest version of `apitinyfile` in your `$GOPATH/bin`
 or `$HOME/go/bin` directory (which you might need to add to your `$PATH`).
 
 
+Usage
+-----
+
+On your server:
+
+```
+# By default, binds to *:3137, with no TLS or authentication.
+# Requires # that you specify what operations to support (`-r/-w/-d` for
+# read/write/delete, # or `-a` for all), and the directory to use for all
+# files (absolute or relative).
+apitinyfile -rwd /path/to/directory
+
+# To use TLS, you must also supply the TLS certificate and key files to use:
+apitinyfile -rwd -c /path/to/tls/cert -k /path/to/tls/key /path/to/directory
+
+# And to use basic authentication, you must also supply a valid `htpasswd` file
+# with users and encrypted passwords (note that you SHOULD always use TLS with
+# basic authentication, since otherwise your credentials will be travelling in
+# the clear on every request):
+apitinyfile -rwd -c /path/to/tls/cert -k /path/to/tls/key -p /path/to/htpasswd /path/to/directory
+
+# See all command-line options:
+apitinyfile -h
+```
+
+
 api
 ---
 
