@@ -191,6 +191,7 @@ func main() {
 
 	// Setup environment
 	env := Env{
+		Verbose:   opts.Verbose,
 		Read:      opts.Read,
 		Write:     opts.Write,
 		Delete:    opts.Delete,
